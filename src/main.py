@@ -24,7 +24,7 @@ from pydub import AudioSegment
 import noisereduce as nr
 
 from mdx import run_mdx
-from rvc import Config, load_hubert, get_vc, rvc_infer
+from rvc_adapter import Config, load_hubert, get_vc, rvc_infer
 import logging
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
