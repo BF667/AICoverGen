@@ -26,31 +26,6 @@ def dl_model(link, model_name, dir_name):
                 f.write(chunk)
 
 
-def provision_assets_model(model_name: str) -> None:
-    """Make sure `assets/models/{model_name}` exists.
-
-    The uziproj/rvc package looks for embedders + predictors under
-    `assets/models/`. AICoverGen historically downloaded
-    `hubert_base.pt` and `rmvpe.pt` to `rvc_models/`. To avoid a
-    duplicate download, we copy from `rvc_models/` to `assets/models/`
-    if the source file is present and the destination is missing.
-
-    If neither location has the file, `dl_model()` is called to
-    download it fresh into `assets/models/`.
-    """
-    dest = assets_models_dir / model_name
-    if dest.exists():
-        return
-
-    src = rvc_models_dir / model_name
-    if src.exists():
-        print(f"Copying {model_name} from rvc_models/ to assets/models/")
-        shutil.copy2(src, dest)
-    else:
-        # Fall back to a fresh download from the same HuggingFace
-        # source AICoverGen historically used.
-        dl_model(RVC_DOWNLOAD_LINK, model_name, assets_models_dir)
-
 
 if __name__ == '__main__':
     mdx_model_names = ['UVR-MDX-NET-Inst_HQ_4.onnx', 'UVR-MDX-NET-Voc_FT.onnx', 'UVR_MDXNET_KARA_2.onnx', 'Reverb_HQ_By_FoxJoy.onnx']
