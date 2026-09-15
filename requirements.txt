@@ -1,4 +1,34 @@
+# AICoverGen dependencies
+#
+# The RVC inference stack is provided by the `uziproj/rvc` package
+# (https://github.com/uziproj/rvc). Pinned versions below prevent
+# pip from pulling the latest CUDA 13 builds (torch 2.14+cu130 /
+# onnxruntime-gpu 1.30) which crash with "Illegal instruction
+# (core dumped)" on Colab / CUDA 12.x drivers.
+#
+# The pins are CUDA-12 compatible and are listed BEFORE the rvc
+# line so pip's resolver prefers them when satisfying rvc's
+# (loosely-pinned) torch / onnxruntime-gpu dependencies.
+
+# --- CUDA 12-compatible pins (place BEFORE the rvc line) --------------
+# torch 2.5.1 (Oct 2024) defaults to CUDA 12.1 wheels on PyPI.
+# torchvision 0.20.1 + torchaudio 2.5.1 are the matching versions.
+# onnxruntime-gpu 1.20.1 supports CUDA 12.x (Colab's default).
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+onnxruntime-gpu==1.20.1
+
+# --- RVC inference (modern uziproj/rvc package) -----------------------
+# Installs the rvc package from GitHub. The package's own deps
+# (faiss-cpu, librosa, praat-parselmouth, soundfile, numpy, scipy,
+# transformers, einops, omegaconf, tqdm, matplotlib, requests,
+# ffmpy, ffmpeg-python, yt-dlp, gradio, etc.) are still pulled
+# transitively, but the four pins above take precedence for the
+# torch / torchvision / torchaudio / onnxruntime-gpu slots.
 git+https://github.com/uziproj/rvc.git
+
+# --- AICoverGen-specific tooling (not RVC-related) -------------------
 deemix
 ffmpeg-python>=0.2.0
 gradio
