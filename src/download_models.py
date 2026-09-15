@@ -9,7 +9,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 mdxnet_models_dir = BASE_DIR / 'mdxnet_models'
 
 mdxnet_models_dir.mkdir(parents=True, exist_ok=True)
-assets_models_dir.mkdir(parents=True, exist_ok=True)
 
 
 def dl_model(link, model_name, dir_name):
