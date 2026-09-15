@@ -1,71 +1,18 @@
-"""
-AICoverGen RVC adapter for the uziproj/rvc package.
-
-This module preserves AICoverGen's original RVC entry points
-(`Config`, `load_hubert`, `get_vc`, `rvc_infer`) but delegates all the
-heavy lifting to the modern, pip-installed `rvc` package from
-https://github.com/uziproj/rvc.
-
-The legacy in-repo RVC stack (`vc_infer_pipeline.py`, `infer_pack/`,
-`rmvpe.py`, `configs/*.json`, `trainset_preprocess_pipeline_print.py`)
-has been moved to `src/_legacy_rvc/` and is no longer imported at
-runtime. It is kept only as a reference for the historical
-implementation.
-
-The uziproj/rvc package:
-  * loads its own embedder (contentvec / hubert) inside `Config`
-  * loads its own RMVPE predictor inside `Config`
-  * exposes a clean `RVClass(config, pth_path).run(...)` API
-  * supports 20+ F0 methods (pm, dio, harvest, yin, pyin, swipe,
-    rmvpe, rmvpe-legacy, fcpe, fcpe-legacy, djcm, crepe-*,
-    mangio-crepe-*, hybrid[...])
-
-This adapter:
-  * Translates AICoverGen's `Config(device, is_half)` call signature
-    into uziproj/rvc's `Config(cpu_mode=..., is_half=...)` signature.
-  * Provides a no-op `load_hubert` for backwards compatibility
-    (AICoverGen's `main.py` still calls it at module load time).
-  * `get_vc` returns a `(cpt, version, net_g, tgt_sr, rvc_instance)`
-    tuple where `rvc_instance` is a `RVClass` ready to call `.run()`
-    on. The first four tuple members are kept only for backwards
-    compatibility with `main.py`'s `voice_change()` and are NOT used
-    by `rvc_infer` below.
-  * `rvc_infer` calls `RVClass.run()` with the same parameter set
-    AICoverGen historically exposed (pitch, f0_method, index_rate,
-    filter_radius, rms_mix_rate, protect, crepe_hop_length). The
-    `steps` parameter preserves the multi-pass behaviour of the
-    original implementation: each pass reuses the previous pass's
-    output as input.
-"""
-from __future__ import annotations
-
+from __future__ import annotation
 import gc
 import os
 from pathlib import Path
 from typing import Any, Tuple
 
 import torch
-
-# Import the modern RVC package.
-# `rvc` is installed via `pip install git+https://github.com/uziproj/rvc.git`
-# (or `pip install -e .` from a local clone).
 from rvc import Config as _RVCConfig, RVClass as _RVClass
 from rvc import F0_METHODS as _F0_METHODS
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# AICoverGen historically stored embedder + rmvpe under `rvc_models/`,
-# while the uziproj/rvc package looks for them under `assets/models/`.
-# `download_models.py` (updated in this same adaptation) is responsible
-# for provisioning `assets/models/` — either by downloading directly
-# or by symlinking the files AICoverGen already downloads.
 ASSETS_MODELS_DIR = BASE_DIR / "assets" / "models"
 RVC_MODELS_DIR = BASE_DIR / "rvc_models"
 
 
-# ---------------------------------------------------------------------------
-# Public symbols
-# ---------------------------------------------------------------------------
 __all__ = [
     "Config",
     "load_hubert",
@@ -332,33 +279,6 @@ RVClass = _RVClass
 F0_METHODS = _F0_METHODS
 
 
-# ---------------------------------------------------------------------------
-# F0 method name normalization
-# ---------------------------------------------------------------------------
-# AICoverGen historically exposed three f0 methods in its webui:
-#   * 'rmvpe+'   — RMVPE with pitch-based (min/max-clamped) inference.
-#                  The uziproj/rvc package does not have a direct
-#                  equivalent of the '+' variant; we map it to plain
-#                  'rmvpe' (which is still the high-quality RMVPE
-#                  U-Net predictor).
-#   * 'rmvpe'    — supported directly by uziproj/rvc.
-#   * 'mangio-crepe' — CREPE (Mangio fork) without a size suffix.
-#                  uziproj/rvc requires a size suffix
-#                  (crepe-tiny / -small / -medium / -large / -full);
-#                  we map the bare 'mangio-crepe' to 'mangio-crepe-large'
-#                  to match the historical behaviour (the original
-#                  torchcrepe.predict() default was the 'full' model,
-#                  but 'large' is the closest equivalent in the new
-#                  package's naming).
-#
-# Other historical method names that work directly with the new
-# package: 'pm', 'dio', 'harvest', 'crepe-tiny', 'mangio-crepe-tiny',
-# 'rmvpe', 'hybrid[...]'.
-#
-# New methods the new package adds that AICoverGen's webui doesn't
-# (yet) expose: 'yin', 'pyin', 'swipe', 'fcpe', 'fcpe-legacy',
-# 'djcm', 'crepe-small', 'crepe-medium', 'crepe-large', 'crepe-full',
-# 'mangio-crepe-small', 'mangio-crepe-medium', 'mangio-crepe-full'.
 _F0_METHOD_ALIASES = {
     "rmvpe+": "rmvpe",
     "crepe": "crepe-large",
