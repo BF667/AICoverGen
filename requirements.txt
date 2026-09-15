@@ -1,23 +1,4 @@
-# AICoverGen dependencies
-#
-# The RVC inference stack is now provided by the `uziproj/rvc`
-# package (https://github.com/uziproj/rvc). It pulls in its own
-# recent versions of torch, torchaudio, faiss-cpu, librosa,
-# praat-parselmouth, soundfile, numpy, scipy, transformers, etc.
-# We therefore no longer pin the older versions of those packages
-# that AICoverGen used to ship. Pins that remain below are for
-# AICoverGen-specific tools (gradio, pedalboard, pydub, sox) that
-# are NOT part of the RVC inference path.
-
-# --- RVC inference (modern uziproj/rvc package) ----------------------
-# Installs the rvc package from GitHub. The package brings its own
-# recent torch / torchaudio / faiss / librosa / praat-parselmouth /
-# soundfile / numpy / scipy / transformers dependencies — see
-# https://github.com/uziproj/rvc/blob/main/pyproject.toml for the
-# full list.
-rvc @ git+https://github.com/uziproj/rvc.git
-
-# --- AICoverGen-specific tooling (not RVC-related) -------------------
+git+https://github.com/uziproj/rvc.git
 deemix
 ffmpeg-python>=0.2.0
 gradio==5.44.0
