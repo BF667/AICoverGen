@@ -1,9 +1,9 @@
 git+https://github.com/uziproj/rvc.git
 deemix
 ffmpeg-python>=0.2.0
-gradio==5.44.0
-lib==4.0.0
-pedalboard==0.7.7
+gradio
+lib
+pedalboard
 pydub==0.25.1
 Requests>=2.31.0
 sox==1.4.1
